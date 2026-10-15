@@ -475,24 +475,27 @@ function viewAuth(){
 }
 async function authAct(act){
   const a=auth;a.msg='';a.ok=false;
+  // 화면을 다시 그리기 전에 입력값을 먼저 읽어둔다
+  const pwEl=document.getElementById('f-pw'),pw2El=document.getElementById('f-pw2');
+  const F={email:val('f-email'),code:val('f-code'),name:val('f-name'),pw:pwEl?pwEl.value:'',pw2:pw2El?pw2El.value:''};
   const busy=async fn=>{a.busy=true;viewAuth();try{await fn();}catch(e){a.msg=errKo(e);}a.busy=false;if(!me)viewAuth();};
-  if(act==='a-go-signup'){a.mode='email';a.reset=false;a.email=val('f-email')||a.email;return viewAuth();}
-  if(act==='a-go-reset'){a.mode='email';a.reset=true;a.email=val('f-email')||a.email;return viewAuth();}
+  if(act==='a-go-signup'){a.mode='email';a.reset=false;a.email=F.email||a.email;return viewAuth();}
+  if(act==='a-go-reset'){a.mode='email';a.reset=true;a.email=F.email||a.email;return viewAuth();}
   if(act==='a-go-login'){a.mode='login';pendingProfile=false;return viewAuth();}
   if(act==='a-login')return busy(async()=>{
-    const email=val('f-email'),password=document.getElementById('f-pw').value;a.email=email;
+    const email=F.email,password=F.pw;a.email=email;
     if(!EMAIL_RE.test(email)||!password){a.msg='이메일과 비밀번호를 입력해 주세요.';return;}
     const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;
     await enter(data.user);
   });
   if(act==='a-send')return busy(async()=>{
-    const email=a.mode==='code'?a.email:val('f-email');a.email=email;
+    const email=a.mode==='code'?a.email:F.email;a.email=email;
     if(!EMAIL_RE.test(email)){a.msg='이메일 주소를 확인해 주세요.';return;}
     const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});if(error)throw error;
     const resent=a.mode==='code';a.mode='code';if(resent){a.msg='인증번호를 다시 보냈어요.';a.ok=true;}
   });
   if(act==='a-verify')return busy(async()=>{
-    const token=val('f-code').replace(/\s/g,'');
+    const token=F.code.replace(/\s/g,'');
     if(!/^\d{6,10}$/.test(token)){a.msg='메일로 받은 숫자를 입력해 주세요.';return;}
     pendingProfile=true;
     const {data,error}=await sb.auth.verifyOtp({email:a.email,token,type:'email'});
@@ -500,7 +503,7 @@ async function authAct(act){
     a.name=(data.user.user_metadata&&data.user.user_metadata.name)||'';a.mode='profile';
   });
   if(act==='a-profile')return busy(async()=>{
-    const name=val('f-name'),pw=document.getElementById('f-pw').value,pw2=document.getElementById('f-pw2').value;
+    const name=F.name,pw=F.pw,pw2=F.pw2;a.name=name;
     if(!NAME_RE.test(name)){a.msg='영어 이름은 영문 알파벳과 공백으로 입력해 주세요.';return;}
     if(pw.length<6){a.msg='비밀번호는 6자 이상이어야 해요.';return;}
     if(pw!==pw2){a.msg='비밀번호 두 개가 서로 달라요.';return;}

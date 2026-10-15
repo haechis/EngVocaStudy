@@ -339,7 +339,7 @@ function viewTest(){
   }).join('')}</div>
   ${answered&&q.pick!==q.w?`<div class="note">${q.w[3]?exHTML(q.w[0],q.w[3]):''}</div><div class="dock"><div class="in"><button class="primary" data-act="next">${T.k+1<T.qs.length?'다음 문제':'결과 보기'}</button></div></div>`:''}`;
 }
-function answer(j){const q=T.qs[T.k];if(q.pick!==null)return;q.pick=q.opts[j];if(q.dir==='ko')speak(q.w[0]);viewTest();if(q.pick===q.w)setTimeout(next,650);}
+function answer(j){const q=T.qs[T.k];if(q.pick!==null)return;q.pick=q.opts[j];if(q.pick===q.w)setTimeout(next,650);}
 function next(){if(!T)return;if(T.k+1<T.qs.length){T.k++;viewTest();}else finishTest();}
 function finishTest(){
   const wrong=T.qs.filter(q=>q.pick!==q.w),c=T.qs.length-wrong.length;

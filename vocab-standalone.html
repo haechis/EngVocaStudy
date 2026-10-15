@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>영단어</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F6FB; --sheet:#FFFFFF; --ink:#1B2A4A; --ink2:#55627D; --rule:#D9E1EE;
+  --mark:#FFE45C; --markSoft:#FFF4B8; --red:#D93A33; --green:#22895C; --blueline:#B9CBEA;
+  --cell:#E4EAF3;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111827; --sheet:#1A2336; --ink:#E8EDF7; --ink2:#9AA7C0; --rule:#2C3854;
+    --mark:#E8C93A; --markSoft:#4A4220; --red:#FF6B62; --green:#4FCB8E; --blueline:#2E3D5E;
+    --cell:#24304A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111827; --sheet:#1A2336; --ink:#E8EDF7; --ink2:#9AA7C0; --rule:#2C3854;
+  --mark:#E8C93A; --markSoft:#4A4220; --red:#FF6B62; --green:#4FCB8E; --blueline:#2E3D5E;
+  --cell:#24304A; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--blueline);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:20px 18px 120px}
+
+header{margin-bottom:22px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{font-family:"Gowun Dodum",sans-serif;font-size:15px;color:var(--ink2)}
+.daynum{font-family:Fraunces,Georgia,serif;font-weight:700;font-size:44px;line-height:1;letter-spacing:-.02em;margin:6px 0 4px}
+.daynum small{font-size:18px;color:var(--ink2);font-weight:500;margin-left:4px}
+.iconbtn{background:none;border:0;color:var(--ink2);font-size:13px;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
+
+.grid{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:14px}
+.cell{aspect-ratio:1;border-radius:3px;background:var(--cell);position:relative}
+.cell.now{box-shadow:inset 0 0 0 2px var(--ink)}
+.cell.s3{background:var(--green)}
+.cell.s2{background:color-mix(in srgb,var(--green) 60%,var(--cell))}
+.cell.s1{background:color-mix(in srgb,var(--mark) 75%,var(--cell))}
+.cell.s0{background:color-mix(in srgb,var(--red) 55%,var(--cell))}
+.legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-top:6px}
+
+.bar{display:flex;align-items:center;justify-content:space-between;margin:26px 0 12px;gap:10px}
+.bar h2{margin:0;font-size:17px;font-weight:700}
+.bar .sub{font-size:13px;color:var(--ink2)}
+.toggle{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:6px 12px;font-size:13px}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+.list{background:var(--sheet);border-radius:14px;border:1px solid var(--rule);overflow:hidden;
+  background-image:linear-gradient(to right,transparent 46px,var(--blueline) 46px,var(--blueline) 47px,transparent 47px)}
+.row{display:grid;grid-template-columns:46px 1fr auto;align-items:center;border-top:1px solid var(--rule);min-height:68px}
+.row:first-child{border-top:0}
+.row .n{font-family:Fraunces,serif;font-size:13px;color:var(--ink2);text-align:center}
+.row .body{padding:10px 12px 10px 14px;min-width:0}
+.word{font-family:Fraunces,Georgia,serif;font-size:23px;font-weight:600;line-height:1.2;display:inline;
+  background:linear-gradient(transparent 58%,var(--markSoft) 58%)}
+.row.review .word{background:linear-gradient(transparent 58%,color-mix(in srgb,var(--red) 22%,transparent) 58%)}
+.pos{font-size:12px;color:var(--ink2);margin-left:8px}
+.mean{margin-top:2px;font-size:15px;transition:filter .2s}
+.hidden .mean{filter:blur(6px);user-select:none}
+.hidden .row.show .mean{filter:none}
+.ex{display:block;text-align:left;background:none;border:0;padding:4px 0 0;margin:0;font-family:Fraunces,Georgia,serif;font-size:15px;line-height:1.45;color:var(--ink2)}
+.ex b{color:var(--ink);font-weight:700}
+.ex:active{color:var(--ink)}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.tag.ok{color:var(--green)}
+.courses{display:grid;gap:10px;margin-top:18px}
+.course{text-align:left;border:1px solid var(--rule);background:var(--sheet);border-radius:14px;padding:16px 18px;display:grid;gap:2px}
+.course .ct{font-size:18px;font-weight:700}
+.course .cd{font-size:14px;color:var(--ink2)}
+.course .cm{font-size:13px;margin-top:6px;color:var(--ink2)}
+.course:not(:disabled) .cm{color:var(--ink);font-weight:500}
+.course:disabled{opacity:.6;cursor:default}
+.course.done{opacity:1}
+.course.done .cm{color:var(--green)}
+.tag{font-size:11px;color:var(--red);margin-left:8px;font-weight:500}
+.say{background:none;border:0;width:44px;height:44px;margin-right:8px;color:var(--ink2);border-radius:50%}
+.say svg{width:20px;height:20px}
+.say:active{background:var(--cell)}
+.sectionlabel{font-size:13px;color:var(--ink2);margin:18px 0 8px}
+
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--paper) 30%)}
+.dock .in{max-width:560px;margin:0 auto}
+.primary{width:100%;border:0;border-radius:12px;padding:16px;font-size:17px;font-weight:700;background:var(--ink);color:var(--paper)}
+.secondary{width:100%;border:1px solid var(--rule);border-radius:12px;padding:14px;font-size:15px;background:var(--sheet);margin-top:10px}
+.linkbtn{display:block;margin:14px auto 0;background:none;border:0;color:var(--ink2);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+
+/* test */
+.progress{height:6px;background:var(--cell);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress i{display:block;height:100%;background:var(--ink);transition:width .25s}
+.qmeta{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);margin-top:20px}
+.prompt{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:34px 18px;text-align:center;margin:10px 0 16px}
+.prompt .ask{font-size:13px;color:var(--ink2);margin-bottom:10px}
+.prompt .big{font-family:Fraunces,Georgia,serif;font-size:38px;font-weight:700;line-height:1.15;word-break:break-word}
+.prompt .big.ko{font-family:"Noto Sans KR",sans-serif;font-size:26px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:1px solid var(--rule);background:var(--sheet);border-radius:12px;padding:15px 16px;font-size:17px;display:flex;gap:12px;align-items:center}
+.opt .k{font-family:Fraunces,serif;color:var(--ink2);width:18px}
+.opt.en{font-family:Fraunces,Georgia,serif;font-size:20px}
+.opt.right{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--sheet))}
+.opt.wrong{border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,var(--sheet));text-decoration:line-through;text-decoration-color:var(--red)}
+.opt:disabled{cursor:default;color:var(--ink)}
+
+/* result */
+.score{text-align:center;margin:26px 0 8px}
+.score .num{font-family:Fraunces,Georgia,serif;font-size:84px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.score .num span{font-size:34px;color:var(--ink2)}
+.score p{margin:10px 0 0;color:var(--ink2);font-size:15px}
+.note{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--ink2);margin-top:18px}
+.empty{text-align:center;color:var(--ink2);padding:20px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+const EMBED={"courses":[{"title":"중학 기초 600","desc":"중1~2 교과서 수준 필수 단어","order":1,"days":60,"perDay":10,"count":600,"ready":true,"id":"c1"},{"title":"중학 심화 600","desc":"중3~고1 수준 단어","order":2,"days":60,"perDay":10,"count":600,"ready":false,"id":"c2"}],"days":{"c1/1":[["borrow","v","빌리다","Can I borrow your pen?"],["decide","v","결정하다","I decided to study English every day."],["enough","a","충분한","We have enough time to finish it."],["invite","v","초대하다","She invited me to her birthday party."],["popular","a","인기 있는","This song is very popular with teens."],["healthy","a","건강한","Vegetables help you stay healthy."],["different","a","다른","My brother and I have different hobbies."],["important","a","중요한","Sleep is important for students."],["practice","v","연습하다","He practices the piano every evening."],["remember","v","기억하다","Do you remember my name?"]],"c1/2":[["forget","v","잊다","Don't forget to bring your umbrella."],["answer","n","대답, 답","I know the answer to this question."],["question","n","질문","Can I ask you a question?"],["early","a","이른, 일찍","I got up early this morning."],["late","a","늦은, 늦게","Sorry, I'm late for class."],["famous","a","유명한","Paris is famous for the Eiffel Tower."],["favorite","a","가장 좋아하는","My favorite food is pizza."],["hobby","n","취미","My hobby is taking pictures."],["weekend","n","주말","What did you do last weekend?"],["vacation","n","방학, 휴가","We went to the beach during summer vacation."]],"c1/3":[["travel","v","여행하다","I want to travel around the world."],["visit","v","방문하다","We visited our grandparents on Sunday."],["arrive","v","도착하다","The train will arrive at 3 o'clock."],["leave","v","떠나다, 남기다","The bus leaves in ten minutes."],["return","v","돌아오다, 돌려주다","Please return the book by Friday."],["bring","v","가져오다","Bring your lunch tomorrow."],["carry","v","나르다, 들고 다니다","Can you help me carry this box?"],["choose","v","고르다, 선택하다","You can choose any color you like."],["change","v","바꾸다, 변하다","Leaves change color in autumn."],["finish","v","끝내다","Did you finish your homework?"]],"c1/4":[["begin","v","시작하다","The movie will begin soon."],["hurry","v","서두르다","Hurry up, or we'll miss the bus."],["worry","v","걱정하다","Don't worry about the test."],["hope","v","희망하다","I hope you feel better soon."],["believe","v","믿다","I can't believe it's already Friday."],["understand","v","이해하다","I don't understand this word."],["explain","v","설명하다","Can you explain the rule again?"],["describe","v","묘사하다","Describe your best friend in three words."],["discuss","v","토론하다","Let's discuss this problem together."],["agree","v","동의하다","I agree with your idea."]],"c1/5":[["interesting","a","흥미로운","This book is really interesting."],["exciting","a","신나는","The soccer game was so exciting."],["boring","a","지루한","The class was long and boring."],["difficult","a","어려운","Math is difficult for me."],["easy","a","쉬운","The first question was easy."],["special","a","특별한","Today is a special day for my family."],["strange","a","이상한","I heard a strange sound last night."],["quiet","a","조용한","Please be quiet in the library."],["noisy","a","시끄러운","The classroom was noisy at lunchtime."],["dangerous","a","위험한","It is dangerous to swim here."]],"c1/6":[["safe","a","안전한","Keep your money in a safe place."],["careful","a","조심스러운","Be careful when you cross the road."],["helpful","a","도움이 되는","Thank you, your advice was very helpful."],["useful","a","유용한","This app is useful for learning words."],["kind","a","친절한","The new student is very kind."],["brave","a","용감한","The brave firefighter saved the child."],["honest","a","정직한","Please be honest with me."],["polite","a","공손한","It is polite to say thank you."],["friendly","a","친근한","Our new neighbors are very friendly."],["lazy","a","게으른","Don't be lazy, clean your room."]],"c1/7":[["hungry","a","배고픈","I'm hungry, let's eat something."],["thirsty","a","목마른","I'm thirsty, can I have some water?"],["tired","a","피곤한","I was tired after the long trip."],["sick","a","아픈","She stayed home because she was sick."],["angry","a","화난","My mom was angry about the broken window."],["afraid","a","두려워하는","My little sister is afraid of dogs."],["surprised","a","놀란","I was surprised by the news."],["nervous","a","긴장한","I always get nervous before a test."],["proud","a","자랑스러운","I'm proud of my team."],["lonely","a","외로운","He felt lonely in the new city."]],"c1/8":[["library","n","도서관","I study at the library after school."],["museum","n","박물관","We saw dinosaur bones at the museum."],["hospital","n","병원","My grandfather is in the hospital."],["restaurant","n","식당","This restaurant serves great noodles."],["market","n","시장","My mom buys fresh fish at the market."],["village","n","마을","She grew up in a small village."],["city","n","도시","Seoul is a very big city."],["country","n","나라, 시골","Korea is a beautiful country."],["island","n","섬","Jeju is a famous island in Korea."],["mountain","n","산","We climbed the mountain last Saturday."]],"c1/9":[["river","n","강","Children are swimming in the river."],["forest","n","숲","We walked through the forest."],["field","n","들판, 분야","Cows are eating grass in the field."],["beach","n","해변","Let's play volleyball on the beach."],["ocean","n","대양","Whales live in the ocean."],["sky","n","하늘","The sky is clear and blue today."],["weather","n","날씨","How is the weather today?"],["season","n","계절","Spring is my favorite season."],["temperature","n","온도","The temperature dropped below zero."],["cloud","n","구름","There isn't a cloud in the sky."]],"c1/10":[["history","n","역사","I'm interested in Korean history."],["science","n","과학","Science is my favorite subject."],["subject","n","과목, 주제","What subject do you like best?"],["class","n","수업, 학급","Our English class starts at nine."],["grade","n","학년, 성적","I'm in the second grade of middle school."],["test","n","시험","We have a math test tomorrow."],["homework","n","숙제","I finished my homework before dinner."],["problem","n","문제","Do you have any problems with it?"],["example","n","예, 예시","Can you give me an example?"],["idea","n","생각, 아이디어","That's a great idea!"]],"c1/11":[["reason","n","이유","Tell me the reason you were late."],["result","n","결과","The test results came out today."],["plan","n","계획","What is your plan for the weekend?"],["goal","n","목표","My goal is to read fifty books this year."],["dream","n","꿈","My dream is to become a pilot."],["future","n","미래","Nobody knows the future."],["past","n","과거","Learn from the past."],["present","n","현재, 선물","She gave me a present for my birthday."],["moment","n","순간","Wait a moment, please."],["minute","n","분, 잠깐","I'll be ready in a minute."]],"c1/12":[["member","n","구성원, 회원","There are four members in my family."],["neighbor","n","이웃","Our neighbor has a big dog."],["guest","n","손님","We have a guest from Canada."],["stranger","n","낯선 사람","Don't talk to strangers."],["customer","n","고객","The store was full of customers."],["volunteer","n","자원봉사자","She works as a volunteer at the hospital."],["scientist","n","과학자","The scientist made an important discovery."],["artist","n","예술가","Picasso was a great artist."],["writer","n","작가","The writer wrote over twenty books."],["farmer","n","농부","The farmer grows rice and corn."]],"c1/13":[["pilot","n","조종사","The pilot flew the plane safely."],["police","n","경찰","Call the police right away!"],["nurse","n","간호사","The nurse took my temperature."],["engineer","n","기술자, 엔지니어","My uncle is a computer engineer."],["reporter","n","기자","The reporter asked many questions."],["chef","n","요리사","The chef cooked a special dish for us."],["dentist","n","치과의사","I go to the dentist twice a year."],["lawyer","n","변호사","She wants to be a lawyer."],["soldier","n","군인","The soldier protected the town."],["designer","n","디자이너","He is a famous fashion designer."]],"c1/14":[["build","v","짓다, 세우다","They will build a new school here."],["break","v","깨다, 부수다","Be careful not to break the glass."],["fix","v","고치다","Can you fix my bike?"],["cut","v","자르다","Cut the paper in half."],["throw","v","던지다","Throw the ball to me."],["catch","v","잡다","I tried to catch the bus."],["pull","v","당기다","Pull the door to open it."],["push","v","밀다","Push the button to start."],["drop","v","떨어뜨리다","Don't drop your phone."],["pick","v","고르다, 줍다","Pick a card from the box."]],"c1/15":[["grow","v","자라다, 기르다","Plants need sunlight to grow."],["plant","v","심다","We planted trees on Arbor Day."],["water","v","물을 주다","Don't forget to water the flowers."],["feed","v","먹이를 주다","I feed my cat twice a day."],["raise","v","들어 올리다, 기르다","Raise your hand if you know the answer."],["save","v","구하다, 저축하다","I'm saving money for a new bike."],["spend","v","(돈·시간을) 쓰다","I spend too much time on my phone."],["earn","v","(돈을) 벌다","She earns money by teaching piano."],["pay","v","지불하다","How much did you pay for that?"],["sell","v","팔다","They sell fresh bread at that shop."]],"c1/16":[["share","v","나누다, 공유하다","Let's share the pizza."],["lend","v","빌려주다","Can you lend me some money?"],["send","v","보내다","I'll send you a message later."],["receive","v","받다","I received a letter from my friend."],["collect","v","모으다","My brother collects stamps."],["join","v","가입하다, 함께하다","I want to join the soccer club."],["meet","v","만나다","Nice to meet you."],["follow","v","따라가다","Follow me, I'll show you the way."],["lead","v","이끌다","She will lead the team this year."],["guide","v","안내하다","The teacher guided us around the museum."]],"c1/17":[["protect","v","보호하다","We must protect the environment."],["prepare","v","준비하다","Mom is preparing dinner in the kitchen."],["improve","v","향상시키다","Reading every day will improve your English."],["increase","v","증가하다","The number of students increased this year."],["reduce","v","줄이다","We should reduce food waste."],["solve","v","해결하다","Can you solve this math problem?"],["create","v","창조하다, 만들다","Let's create a poster for the festival."],["invent","v","발명하다","Who invented the telephone?"],["discover","v","발견하다","Scientists discovered a new star."],["explore","v","탐험하다","I want to explore the jungle someday."]],"c1/18":[["enjoy","v","즐기다","I hope you enjoy the trip."],["laugh","v","웃다","Everyone laughed at his joke."],["cry","v","울다","The baby started to cry."],["smile","v","미소 짓다","She smiled at me."],["shout","v","소리치다","Don't shout in the hallway."],["whisper","v","속삭이다","He whispered the secret to me."],["sing","v","노래하다","We sang a song together."],["dance","v","춤추다","Let's dance to the music."],["draw","v","그리다","Can you draw a cat?"],["paint","v","칠하다","We painted the wall white."]],"c1/19":[["listen","v","듣다","Listen carefully to the teacher."],["hear","v","들리다","Can you hear me?"],["watch","v","지켜보다","I like to watch the stars at night."],["notice","v","알아차리다","Did you notice anything strange?"],["check","v","확인하다","Check your answers before you hand in the test."],["count","v","세다","Count from one to ten in English."],["measure","v","측정하다","Measure the length of the desk."],["compare","v","비교하다","Compare these two pictures."],["guess","v","추측하다","Guess what I have in my hand."],["imagine","v","상상하다","Imagine a world without music."]],"c1/20":[["allow","v","허락하다","My parents allowed me to go camping."],["let","v","~하게 하다","Let me help you."],["wish","v","바라다","I wish I could fly."],["need","v","필요하다","I need your help."],["want","v","원하다","I want to go home now."],["mind","v","꺼리다","Do you mind if I open the window?"],["care","v","신경 쓰다, 돌보다","I don't care what others think."],["miss","v","그리워하다, 놓치다","I miss my old friends."],["lose","v","잃다, 지다","I lost my wallet on the bus."],["win","v","이기다","Our team won the game."]],"c1/21":[["fail","v","실패하다","He failed the driving test twice."],["succeed","v","성공하다","If you try hard, you will succeed."],["try","v","시도하다","Try this cake, it's delicious."],["keep","v","유지하다, 계속하다","Keep the door closed, please."],["stay","v","머무르다","We stayed at my aunt's house."],["wait","v","기다리다","Wait for me at the gate."],["stop","v","멈추다","Stop talking and listen."],["move","v","움직이다, 이사하다","We moved to Busan last year."],["turn","v","돌다, 돌리다","Turn left at the corner."],["cross","v","건너다","Look both ways before you cross the street."]],"c1/22":[["climb","v","오르다","We climbed to the top of the hill."],["jump","v","뛰다","The cat jumped onto the table."],["swim","v","수영하다","Can you swim well?"],["ride","v","타다","I ride my bike to school."],["drive","v","운전하다","My dad drives to work."],["fly","v","날다","Birds fly south in winter."],["fall","v","떨어지다, 넘어지다","Leaves fall from the trees in autumn."],["hit","v","치다","He hit the ball very hard."],["kick","v","차다","Kick the ball into the goal."],["shake","v","흔들다","Shake the bottle before you drink it."]],"c1/23":[["wear","v","입다","You have to wear a uniform at school."],["wash","v","씻다","Wash your hands before eating."],["clean","v","청소하다","I clean my room every Saturday."],["cook","v","요리하다","My dad likes to cook on weekends."],["bake","v","굽다","We baked cookies for the party."],["boil","v","끓이다","Boil the water for three minutes."],["mix","v","섞다","Mix the flour and the eggs."],["taste","v","맛보다","Taste the soup and add some salt."],["smell","v","냄새 맡다","This flower smells sweet."],["touch","v","만지다","Don't touch the paint, it's wet."]],"c1/24":[["breakfast","n","아침 식사","I eat breakfast at seven."],["lunch","n","점심 식사","Let's have lunch together."],["dinner","n","저녁 식사","What's for dinner?"],["meal","n","식사","We had a big meal at the restaurant."],["dessert","n","후식","I'll have ice cream for dessert."],["vegetable","n","채소","Eat more vegetables."],["fruit","n","과일","Apples are my favorite fruit."],["meat","n","고기","He doesn't eat meat."],["bread","n","빵","I had bread and milk for breakfast."],["rice","n","쌀, 밥","Koreans eat rice every day."]],"c1/25":[["clothes","n","옷","I need some new clothes."],["shirt","n","셔츠","He is wearing a blue shirt."],["pants","n","바지","These pants are too long."],["shoes","n","신발","Take off your shoes, please."],["uniform","n","교복, 제복","I have to wear a school uniform."],["glasses","n","안경","I can't see well without my glasses."],["umbrella","n","우산","Take an umbrella, it might rain."],["wallet","n","지갑","I found a wallet on the street."],["bag","n","가방","My bag is too heavy."],["gift","n","선물","Thank you for the gift."]],"c1/26":[["body","n","몸","Exercise is good for your body."],["head","n","머리","My head hurts."],["face","n","얼굴","Wash your face."],["shoulder","n","어깨","He put his hand on my shoulder."],["arm","n","팔","I broke my arm last year."],["finger","n","손가락","She pointed her finger at the map."],["knee","n","무릎","I hurt my knee playing soccer."],["tooth","n","이, 치아","Brush your teeth after meals."],["heart","n","심장, 마음","My heart was beating fast."],["brain","n","뇌","The brain controls the body."]],"c1/27":[["animal","n","동물","What's your favorite animal?"],["insect","n","곤충","Bees are useful insects."],["bird","n","새","A bird is singing in the tree."],["tail","n","꼬리","The dog is wagging its tail."],["wing","n","날개","The bird hurt its wing."],["nest","n","둥지","There are three eggs in the nest."],["zoo","n","동물원","We saw lions at the zoo."],["pet","n","애완동물","Do you have any pets?"],["tiger","n","호랑이","The tiger is a dangerous animal."],["dolphin","n","돌고래","Dolphins are very smart."]],"c1/28":[["earth","n","지구, 땅","The earth goes around the sun."],["nature","n","자연","I love being in nature."],["environment","n","환경","We need to protect the environment."],["air","n","공기","Let's get some fresh air."],["energy","n","에너지","Save energy by turning off the lights."],["pollution","n","오염","Air pollution is a big problem."],["trash","n","쓰레기","Don't throw trash on the street."],["recycle","v","재활용하다","We recycle paper and cans."],["plastic","n","플라스틱","Try not to use plastic bags."],["resource","n","자원","Water is a precious resource."]],"c1/29":[["culture","n","문화","Every country has its own culture."],["tradition","n","전통","It is a tradition to eat rice cake soup on New Year's Day."],["festival","n","축제","The town holds a music festival every summer."],["holiday","n","휴일, 명절","Chuseok is a big holiday in Korea."],["custom","n","관습","Bowing is a Korean custom."],["language","n","언어","How many languages can you speak?"],["community","n","지역 사회, 공동체","We cleaned the park for our community."],["society","n","사회","We live in a modern society."],["world","n","세계","English is spoken all over the world."],["nation","n","국가, 국민","The whole nation cheered for the team."]],"c1/30":[["event","n","행사, 사건","The school event starts at ten."],["contest","n","대회","I won first place in the singing contest."],["prize","n","상, 상품","She won a prize for her drawing."],["team","n","팀","Our team practiced hard."],["player","n","선수","He is the best player on the team."],["game","n","경기, 게임","Let's play a game."],["match","n","시합","We watched the soccer match on TV."],["score","n","점수","What's the score now?"],["rule","n","규칙","You must follow the rules."],["record","n","기록","He broke the world record."]],"c1/31":[["information","n","정보","You can find information on the internet."],["news","n","소식, 뉴스","I have good news for you."],["message","n","메시지","Leave a message after the beep."],["letter","n","편지, 글자","I wrote a letter to my grandma."],["diary","n","일기","I write in my diary every night."],["story","n","이야기","Tell me a funny story."],["novel","n","소설","She is reading a novel."],["poem","n","시","We read a poem in English class."],["title","n","제목","What's the title of the book?"],["page","n","쪽, 페이지","Open your books to page 20."]],"c1/32":[["computer","n","컴퓨터","I use my computer for homework."],["internet","n","인터넷","Don't spend too much time on the internet."],["screen","n","화면","The screen is too bright."],["program","n","프로그램","I watch a cooking program every week."],["robot","n","로봇","This robot can clean the floor."],["machine","n","기계","The machine is broken."],["tool","n","도구","A hammer is a useful tool."],["invention","n","발명품","The light bulb was a great invention."],["technology","n","기술, 과학 기술","Technology changes our lives."],["electricity","n","전기","Don't waste electricity."]],"c1/33":[["money","n","돈","I don't have enough money."],["price","n","가격","The price of the shoes is too high."],["cost","n","비용","The cost of living is rising."],["coin","n","동전","I found a coin under the sofa."],["bill","n","지폐, 청구서","Can you change this bill?"],["cash","n","현금","Do you pay in cash or by card?"],["sale","n","판매, 할인","These shoes are on sale."],["shop","n","가게","The shop closes at nine."],["store","n","상점, 가게","There is a store near my house."],["item","n","물품, 항목","Each item costs five dollars."]],"c1/34":[["size","n","크기","What size do you wear?"],["shape","n","모양","The cookies are in the shape of stars."],["color","n","색깔","What color is your bag?"],["line","n","선, 줄","Stand in line, please."],["circle","n","원","Draw a circle on the paper."],["square","n","정사각형, 광장","Meet me at the square."],["corner","n","모퉁이, 구석","The bank is on the corner."],["side","n","옆, 쪽","Write your name on the left side."],["middle","n","가운데","The dog sat in the middle of the road."],["center","n","중심, 센터","There is a new shopping center downtown."]],"c1/35":[["top","n","꼭대기","We reached the top of the mountain."],["bottom","n","바닥, 맨 아래","The answer is at the bottom of the page."],["front","n","앞","Meet me in front of the school."],["back","n","뒤, 등","Sit in the back of the bus."],["inside","n","안쪽","It's warm inside the house."],["outside","n","바깥쪽","The kids are playing outside."],["between","prep","(둘) 사이에","The bank is between the bakery and the bookstore."],["behind","prep","~ 뒤에","The cat is hiding behind the door."],["among","prep","(셋 이상) 사이에","She is popular among her classmates."],["across","prep","~을 가로질러","We walked across the bridge."]],"c1/36":[["through","prep","~을 통해","The train went through the tunnel."],["toward","prep","~ 쪽으로","He walked toward the station."],["during","prep","~ 동안","Don't use your phone during class."],["without","prep","~ 없이","I can't live without music."],["against","prep","~에 반대하여","Many people are against the plan."],["along","prep","~을 따라","We walked along the river."],["until","prep","~까지","Wait here until I come back."],["since","prep","~ 이후로","I have lived here since 2020."],["above","prep","~ 위에","The plane is flying above the clouds."],["below","prep","~ 아래에","Write your name below the line."]],"c1/37":[["always","ad","항상","She always smiles at people."],["usually","ad","보통","I usually get up at seven."],["often","ad","자주","I often go to the library."],["sometimes","ad","가끔","Sometimes I walk to school."],["never","ad","결코 ~않다","I will never give up."],["already","ad","이미","I have already eaten lunch."],["still","ad","여전히","It's still raining outside."],["soon","ad","곧","Dinner will be ready soon."],["again","ad","다시","Can you say that again?"],["once","ad","한 번, 한때","I go swimming once a week."]],"c1/38":[["almost","ad","거의","I'm almost finished."],["also","ad","또한","I like soccer, and I also like baseball."],["even","ad","심지어","Even a child can do it."],["only","ad","오직","Only five students came to class."],["just","ad","막, 단지","I just finished my homework."],["really","ad","정말로","I really like this song."],["quite","ad","꽤","The test was quite easy."],["too","ad","너무, ~도","This coffee is too hot."],["maybe","ad","어쩌면","Maybe it will rain tomorrow."],["probably","ad","아마도","He will probably be late again."]],"c1/39":[["finally","ad","마침내","We finally arrived at the hotel."],["suddenly","ad","갑자기","Suddenly the lights went out."],["slowly","ad","천천히","Please speak slowly."],["quickly","ad","빨리","He ran quickly to the bus stop."],["easily","ad","쉽게","She solved the problem easily."],["carefully","ad","조심스럽게","Carry the glasses carefully."],["loudly","ad","큰 소리로","They cheered loudly for the team."],["together","ad","함께","Let's sing together."],["alone","ad","혼자","He lives alone in a small apartment."],["abroad","ad","해외로","I want to study abroad."]],"c1/40":[["bright","a","밝은","The room is bright and clean."],["dark","a","어두운","It's getting dark outside."],["heavy","a","무거운","This box is too heavy for me."],["light","a","가벼운","This jacket is light and warm."],["soft","a","부드러운","The bed is soft and comfortable."],["hard","a","딱딱한, 어려운","This bread is too hard to eat."],["smooth","a","매끄러운","The road is smooth and wide."],["sharp","a","날카로운","Be careful, the knife is sharp."],["wet","a","젖은","My shoes got wet in the rain."],["dry","a","마른, 건조한","Hang the clothes outside to dry."]],"c1/41":[["empty","a","비어 있는","The fridge is almost empty."],["full","a","가득 찬","The bus was full of people."],["deep","a","깊은","The lake is very deep."],["wide","a","넓은","The river is wide here."],["narrow","a","좁은","The street is too narrow for cars."],["huge","a","거대한","There is a huge tree in the park."],["tiny","a","아주 작은","I saw a tiny spider on the wall."],["thick","a","두꺼운","This book is very thick."],["thin","a","얇은","The ice is too thin to walk on."],["round","a","둥근","The earth is round."]],"c1/42":[["modern","a","현대의","Seoul is a modern city."],["ancient","a","고대의","We visited an ancient temple."],["traditional","a","전통적인","Hanbok is traditional Korean clothing."],["foreign","a","외국의","Learning a foreign language is fun."],["local","a","지역의","We bought fruit from a local farm."],["public","a","공공의","Don't talk loudly in public places."],["private","a","사적인, 개인의","This is my private room."],["free","a","자유로운, 무료의","The museum is free on Sundays."],["busy","a","바쁜","I'm busy with homework today."],["ready","a","준비된","Are you ready to go?"]],"c1/43":[["possible","a","가능한","Is it possible to finish by tomorrow?"],["impossible","a","불가능한","It's impossible to know everything."],["necessary","a","필요한","Water is necessary for life."],["real","a","진짜의","Is that a real diamond?"],["true","a","사실인","Is it true that you're moving?"],["wrong","a","틀린","Sorry, I called the wrong number."],["correct","a","정확한, 옳은","Check if your answer is correct."],["simple","a","간단한","The rules of the game are simple."],["clear","a","분명한, 맑은","The water is so clear that I can see the fish."],["main","a","주된","Rice is the main food in Korea."]],"c1/44":[["wonderful","a","멋진","We had a wonderful time at the beach."],["terrible","a","끔찍한","The food was terrible."],["excellent","a","우수한","Your English is excellent."],["perfect","a","완벽한","Nobody is perfect."],["beautiful","a","아름다운","What a beautiful sunset!"],["cute","a","귀여운","Look at that cute puppy!"],["ugly","a","못생긴","The ugly duckling became a swan."],["delicious","a","맛있는","This soup is delicious."],["comfortable","a","편안한","This chair is very comfortable."],["convenient","a","편리한","The subway is a convenient way to travel."]],"c1/45":[["fresh","a","신선한","Buy fresh fruit at the market."],["dirty","a","더러운","Your shoes are dirty."],["warm","a","따뜻한","It's warm today."],["cool","a","시원한","A cool wind is blowing."],["cold","a","추운, 차가운","It's cold outside, wear a coat."],["hot","a","더운, 뜨거운","Be careful, the soup is hot."],["sweet","a","달콤한","Chocolate is very sweet."],["salty","a","짠","The sea water tastes salty."],["spicy","a","매운","Kimchi is a little spicy."],["sour","a","신, 시큼한","Lemons taste sour."]],"c1/46":[["smart","a","똑똑한","She is the smartest girl in the class."],["wise","a","지혜로운","My grandmother is a wise woman."],["clever","a","영리한","What a clever idea!"],["foolish","a","어리석은","It was foolish of me to believe him."],["gentle","a","온화한","He is gentle with animals."],["shy","a","수줍은","She is too shy to speak in class."],["active","a","활동적인","My grandpa is still very active."],["calm","a","침착한","Stay calm and listen to me."],["curious","a","호기심 많은","Cats are curious animals."],["creative","a","창의적인","She is a creative designer."]],"c1/47":[["rich","a","부유한","He became rich after many years of work."],["poor","a","가난한","They were too poor to buy food."],["strong","a","강한","He is strong enough to lift the box."],["weak","a","약한","I felt weak after being sick."],["fast","a","빠른","He is a fast runner."],["slow","a","느린","The bus was slow because of traffic."],["cheap","a","값싼","I bought a cheap watch."],["expensive","a","비싼","This bag is too expensive."],["loud","a","소리가 큰","The music is too loud."],["silent","a","침묵하는","The room was silent."]],"c1/48":[["experience","n","경험","Traveling is a great experience."],["skill","n","솜씨","Cooking is a useful skill."],["ability","n","능력","She has the ability to speak three languages."],["habit","n","습관","Reading before bed is a good habit."],["effort","n","노력","Thank you for your effort."],["chance","n","기회","Give me another chance."],["choice","n","선택","You made a good choice."],["decision","n","결정","It was a hard decision."],["advice","n","조언","Can you give me some advice?"],["opinion","n","의견","In my opinion, this book is better."]],"c1/49":[["fact","n","사실","It is a fact that the earth is round."],["truth","n","진실","Please tell me the truth."],["secret","n","비밀","Can you keep a secret?"],["mistake","n","실수","Everyone makes mistakes."],["trouble","n","어려움, 곤란","I had trouble finding the house."],["danger","n","위험","The animals are in danger."],["accident","n","사고","He was hurt in a car accident."],["fire","n","불, 화재","The fire spread quickly."],["emergency","n","비상사태","Call 119 in an emergency."],["health","n","건강","Smoking is bad for your health."]],"c1/50":[["feeling","n","느낌","I have a feeling that something good will happen."],["emotion","n","감정","Music can change our emotions."],["fear","n","두려움","He shook with fear."],["joy","n","기쁨","She cried with joy."],["peace","n","평화","We want peace, not war."],["war","n","전쟁","Many people died in the war."],["power","n","힘","Knowledge is power."],["freedom","n","자유","Everyone wants freedom."],["respect","v","존경하다, 존중하다","I respect my parents."],["promise","v","약속하다","I promise I'll be on time."]],"c1/51":[["introduce","v","소개하다","Let me introduce myself."],["suggest","v","제안하다","I suggest we take a break."],["mention","v","언급하다","He didn't mention the party."],["report","v","보도하다, 보고하다","The newspaper reported the accident."],["repeat","v","반복하다","Repeat after me."],["complete","v","완성하다","Complete the sentences below."],["continue","v","계속되다","The rain continued all day."],["develop","v","발전시키다","Reading helps develop your mind."],["produce","v","생산하다","This factory produces cars."],["provide","v","제공하다","The hotel provides free breakfast."]],"c1/52":[["contain","v","~이 들어 있다","This box contains old photos."],["include","v","포함하다","The price includes breakfast."],["exist","v","존재하다","Do you think ghosts exist?"],["appear","v","나타나다","A rainbow appeared in the sky."],["disappear","v","사라지다","The sun disappeared behind the clouds."],["happen","v","일어나다, 발생하다","What happened to your arm?"],["belong","v","속하다","This book belongs to me."],["depend","v","의존하다","Children depend on their parents."],["expect","v","기대하다","I expect good results this time."],["prefer","v","선호하다","I prefer tea to coffee."]],"c1/53":[["cheer","v","응원하다","We cheered for our team."],["celebrate","v","축하하다","Let's celebrate your birthday!"],["apologize","v","사과하다","I apologize for being late."],["thank","v","감사하다","Thank you for your help."],["forgive","v","용서하다","Please forgive me."],["hate","v","몹시 싫어하다","I hate getting up early."],["blame","v","탓하다, 비난하다","Don't blame others for your mistakes."],["complain","v","불평하다","He always complains about the food."],["argue","v","논쟁하다","They argued about money."],["fight","v","싸우다","Stop fighting, you two."]],"c1/54":[["hide","v","숨다, 숨기다","The cat hid under the bed."],["search","v","찾다, 검색하다","I searched everywhere for my keys."],["seem","v","~처럼 보이다","You seem tired today."],["become","v","~이 되다","He became a doctor."],["fill","v","채우다","Fill the bottle with water."],["cover","v","덮다","Snow covered the whole city."],["hang","v","걸다","Hang your coat on the hook."],["lay","v","놓다, 눕히다","She laid the baby on the bed."],["lie","v","눕다, 거짓말하다","Don't lie to me."],["rest","v","쉬다","Let's rest for a while."]],"c1/55":[["order","v","주문하다, 명령하다","I'd like to order a pizza."],["serve","v","(음식을) 내다, 봉사하다","Dinner is served at six."],["deliver","v","배달하다","They deliver food until midnight."],["pack","v","짐을 싸다","Did you pack your bag?"],["waste","v","낭비하다","Don't waste your time."],["use","v","사용하다","Can I use your phone?"],["set","v","놓다, 설정하다","Set the alarm for six."],["print","v","인쇄하다","Please print this page."],["post","v","게시하다","I posted photos on my blog."],["type","v","타자를 치다","She types very fast."]],"c1/56":[["attend","v","참석하다","Many people attended the meeting."],["graduate","v","졸업하다","My sister graduated from college."],["enter","v","들어가다","Knock before you enter the room."],["exit","n","출구","Where is the exit?"],["entrance","n","입구","Meet me at the main entrance."],["stairs","n","계단","Walk up the stairs to the third floor."],["floor","n","바닥, 층","My room is on the second floor."],["roof","n","지붕","There is a cat on the roof."],["wall","n","벽","There are pictures on the wall."],["window","n","창문","Open the window, please."]],"c1/57":[["address","n","주소","What's your address?"],["street","n","거리","I live on this street."],["road","n","도로","The road is closed today."],["bridge","n","다리","Let's cross the bridge."],["station","n","역","Where is the nearest subway station?"],["airport","n","공항","We arrived at the airport early."],["subway","n","지하철","I take the subway to school."],["traffic","n","교통","There was heavy traffic this morning."],["map","n","지도","Let's look at the map."],["direction","n","방향","Which direction should we go?"]],"c1/58":[["trip","n","여행","How was your trip?"],["journey","n","여정","It was a long journey home."],["ticket","n","표","I bought two tickets for the movie."],["passport","n","여권","Don't forget your passport."],["schedule","n","일정","I have a busy schedule this week."],["souvenir","n","기념품","I bought some souvenirs in Japan."],["tour","n","관광","We took a bus tour of the city."],["view","n","경치, 관점","The room has a great view of the sea."],["hotel","n","호텔","We stayed at a hotel near the beach."],["luggage","n","짐, 수하물","Put your luggage here."]],"c1/59":[["period","n","기간, 시대","I lived in Japan for a short period."],["century","n","세기","This church was built in the 18th century."],["age","n","나이","He started playing piano at the age of five."],["date","n","날짜","What's the date today?"],["calendar","n","달력","I marked the date on my calendar."],["birthday","n","생일","Happy birthday to you!"],["anniversary","n","기념일","Today is my parents' wedding anniversary."],["midnight","n","자정","I went to bed after midnight."],["noon","n","정오","Let's meet at noon."],["tonight","ad","오늘 밤","What are you doing tonight?"]],"c1/60":[["lucky","a","운이 좋은","I was lucky to find a seat."],["upset","a","속상한","She was upset about the result."],["serious","a","심각한, 진지한","This is a serious problem."],["unique","a","독특한","Each person has a unique fingerprint."],["similar","a","비슷한","My sister and I have similar tastes."],["whole","a","전체의","I ate the whole cake."],["own","a","자기 자신의","I want my own room."],["certain","a","확실한","I'm certain that he will come."],["various","a","다양한","The store sells various kinds of bread."],["favor","n","부탁, 호의","Can I ask you a favor?"]]}};
+const POS={n:'명사',v:'동사',a:'형용사',ad:'부사',prep:'전치사'};
+const INT=[1,2,4,7,15,30];      // 단계별 다음 복습까지 간격(학습일 기준)
+const MASTER=INT.length;        // 이 단계에 오르면 '완전히 외움'
+const NEW_PER_DAY=10, REVIEW_MAX=10;
+const LS='vocab.v2', LS_OLD='vocab60.v1', LS_DAY='vocab.day.', LS_COURSES='vocab.courses';
+const $app=document.getElementById('app');
+
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fresh(){return {v:2,course:null,day:1,g:1,status:'pick',review:[],cards:{},history:{},done:[],testedDate:null,attempted:false,updatedAt:0};}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+let S=lsGet(LS);
+if(!S){const old=lsGet(LS_OLD);S=old?migrate(old):fresh();}
+S=Object.assign(fresh(),S);
+let COURSES=EMBED.courses;
+const DAYS=Object.assign({},EMBED.days);
+let db=null,userDoc=null,ready=false,loadErr='';
+let ui={view:null,hide:false,shown:new Set()};
+let T=null;
+
+/* ---------- 이전 버전(60일 고정판) 기록 옮기기 ---------- */
+function migrate(o){
+  const s=fresh();s.course='c1';s.day=o.day||1;s.g=o.day||1;
+  s.status=o.status==='tested'?'tested':'study';s.testedDate=o.testedDate||null;s.attempted=!!o.attempted;
+  s.history={c1:o.history||{}};
+  const last=o.status==='tested'?o.day:o.day-1;
+  for(let i=0;i<last*10&&i<600;i++){const w=o.wrong&&o.wrong[i];s.cards['c1:'+i]=w?{lv:0,due:(w.d||1)+1,n:w.n||1}:{lv:1,due:s.g+INT[1],n:0};}
+  s.review=[];s.updatedAt=o.updatedAt||0;return s;
+}
+
+/* ---------- 단어 데이터 ---------- */
+function course(id){return COURSES.find(c=>c.id===id);}
+function dayOf(id){const [c,i]=id.split(':');const co=course(c);return [c,Math.floor(+i/(co?co.perDay:10))+1];}
+function word(id){const [c,i]=id.split(':');const co=course(c),per=co?co.perDay:10;const d=DAYS[c+'/'+(Math.floor(+i/per)+1)];return d?d[+i%per]:null;}
+function newIds(){if(!S.course)return[];const co=course(S.course);if(!co)return[];const s=(S.day-1)*co.perDay;return Array.from({length:co.perDay},(_,k)=>S.course+':'+(s+k)).filter(id=>+id.split(':')[1]<co.count);}
+async function loadDay(c,d){
+  const key=c+'/'+d;if(DAYS[key])return;
+  const cached=lsGet(LS_DAY+key);if(cached){DAYS[key]=cached;return;}
+  if(!db)throw new Error('offline');
+  const snap=await db.collection('courses/'+c+'/days').doc('d'+String(d).padStart(2,'0')).get();
+  if(!snap.exists)throw new Error('missing '+key);
+  DAYS[key]=snap.data().words;lsSet(LS_DAY+key,DAYS[key]);
+}
+async function loadNeeded(){
+  const need=new Map();
+  const add=id=>{const [c,d]=dayOf(id);need.set(c+'/'+d,[c,d]);};
+  newIds().forEach(add);(S.review||[]).forEach(add);
+  // 보기(오답 선택지)용으로 같은 과정의 다른 날 단어도 조금 불러옴
+  const co=course(S.course)||course((S.review[0]||'').split(':')[0]);
+  if(co){for(const d of [Math.max(1,S.day-1),Math.min(co.days,S.day+1),Math.min(co.days,S.day+2)])need.set(co.id+'/'+d,[co.id,d]);}
+  await Promise.all([...need.values()].map(([c,d])=>loadDay(c,d)));
+}
+
+/* ---------- 간격 반복: 복습 대상 고르기 ---------- */
+function pickReview(){
+  const fresh=new Set(newIds());
+  return Object.entries(S.cards).filter(([id,c])=>c.lv<MASTER&&c.due<=S.g&&!fresh.has(id))
+    .sort((a,b)=>a[1].due-b[1].due||a[1].lv-b[1].lv).slice(0,S.reviewMax||REVIEW_MAX).map(([id])=>id);
+}
+function startDay(){S.status=S.course?'study':(S.status==='pick'?'pick':'study');S.review=pickReview();S.attempted=false;}
+function canAdvance(){return S.status==='tested'&&S.testedDate&&today()>S.testedDate;}
+function advance(){
+  S.g++;
+  if(S.course){const co=course(S.course);if(co&&S.day>=co.days){if(!S.done.includes(S.course))S.done.push(S.course);S.course=null;S.day=1;S.status='pick';S.review=pickReview();return;}S.day++;}
+  startDay();
+}
+
+/* ---------- 저장 ---------- */
+let saveTimer=null;
+function save(){
+  S.updatedAt=Date.now();lsSet(LS,S);
+  if(userDoc){clearTimeout(saveTimer);saveTimer=setTimeout(()=>userDoc.set(JSON.parse(JSON.stringify(S))).catch(()=>{}),400);}
+}
+
+/* ---------- 발음 ---------- */
+function speak(t){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.9;speechSynthesis.speak(u);}
+const SPEAKER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const IRREG={sing:'sang',win:'won',tooth:'teeth',become:'became',lay:'laid',hide:'hid',lose:'lost',feed:'fed',fly:'flew',lead:'led'};
+function exHTML(w,s){
+  const forms=[w,IRREG[w],w.replace(/e$/,''),w.replace(/y$/,'i')].filter(Boolean).map(f=>f.replace(/[^a-z']/gi,''));
+  for(const f of forms){const m=s.match(new RegExp('\\b('+f+'\\w*)','i'));if(m){const k=m.index;return esc(s.slice(0,k))+'<b>'+esc(m[1])+'</b>'+esc(s.slice(k+m[1].length));}}
+  return esc(s);
+}
+
+/* ---------- 헤더 ---------- */
+function stats(){let m=0,l=0;for(const c of Object.values(S.cards)){if(c.lv>=MASTER)m++;else l++;}return {m,l,due:Object.values(S.cards).filter(c=>c.lv<MASTER&&c.due<=S.g).length};}
+function header(){
+  const co=course(S.course);const st=stats();
+  let grid='';
+  if(co){
+    const h=S.history[co.id]||{};const cells=[];
+    for(let d=1;d<=co.days;d++){
+      const r=h[d];let c='cell';
+      if(r){const x=r.c/r.t;c+=x>=.9?' s3':x>=.7?' s2':x>=.5?' s1':' s0';}
+      if(d===S.day&&S.status!=='tested')c+=' now';
+      cells.push(`<div class="${c}" title="Day ${d}${r?` ${r.c}/${r.t}`:''}"></div>`);
+    }
+    grid=`<div class="grid" aria-label="진행 현황">${cells.join('')}</div>`;
+  }
+  return `<header>
+    <div class="top"><span class="brand">${co?esc(co.title):'영단어'}</span><button class="iconbtn" data-act="menu">메뉴</button></div>
+    <div class="daynum">${co?`Day ${S.day}<small>/ ${co.days}</small>`:'복습'}</div>
+    ${grid}
+    <div class="legend"><span>외운 단어 ${st.m}개</span><span>익히는 중 ${st.l}개</span></div>
+  </header>`;
+}
+
+/* ---------- 학습 화면 ---------- */
+function rowHTML(id,n,isReview){
+  const w=word(id);if(!w)return'';const [en,p,m,ex]=w;const c=S.cards[id];
+  const tag=isReview&&c?(c.lv===0?'<span class="tag">지난번에 틀림</span>':`<span class="tag ok">${c.lv}단계 복습</span>`):'';
+  return `<div class="row${isReview?' review':''}${ui.shown.has(id)?' show':''}" data-id="${id}">
+    <div class="n">${n}</div>
+    <div class="body"><span class="word">${esc(en)}</span><span class="pos">${POS[p]||''}</span>${tag}
+      <div class="mean">${esc(m)}</div>
+      ${ex?`<button class="ex" data-say="${esc(ex)}" aria-label="예문 듣기">${exHTML(en,ex)}</button>`:''}</div>
+    <button class="say" data-say="${esc(en)}" aria-label="${esc(en)} 발음 듣기">${SPEAKER}</button>
+  </div>`;
+}
+function viewStudy(){
+  const nw=newIds(),rv=S.review||[];let n=0;
+  if(!nw.length&&!rv.length){
+    $app.innerHTML=header()+`<div class="note" style="margin-top:28px">오늘은 복습할 단어가 없어요. 새 과정을 고르면 새 단어를 이어서 외울 수 있어요.</div>
+    <div style="margin-top:16px"><button class="primary" data-act="pick">과정 고르기</button></div>`;return;
+  }
+  $app.innerHTML=header()+`
+  <div class="bar"><div><h2>오늘 외울 단어</h2><div class="sub">${nw.length?`새 단어 ${nw.length}개`:''}${nw.length&&rv.length?', ':''}${rv.length?`복습 ${rv.length}개`:''}</div></div>
+    <button class="toggle" data-act="hide" aria-pressed="${ui.hide}">뜻 가리기</button></div>
+  <div class="${ui.hide?'hidden':''}">
+    ${nw.length?`<div class="list">${nw.map(id=>rowHTML(id,++n,false)).join('')}</div>`:''}
+    ${rv.length?`<div class="sectionlabel">다시 볼 단어</div><div class="list">${rv.map(id=>rowHTML(id,++n,true)).join('')}</div>`:''}
+  </div>
+  ${ui.hide?'<p style="text-align:center;color:var(--ink2);font-size:13px;margin-top:12px">단어를 누르면 뜻이 보여요</p>':''}
+  <div class="dock"><div class="in"><button class="primary" data-act="test">다 외웠어요, 시험 보기</button></div></div>`;
+}
+
+/* ---------- 과정 고르기 ---------- */
+function viewPick(){
+  const st=stats();
+  const list=[...COURSES].sort((a,b)=>a.order-b.order).map(c=>{
+    const done=S.done.includes(c.id),cur=S.course===c.id;
+    return `<button class="course${done?' done':''}" data-course="${c.id}" ${done||!c.ready?'disabled':''}>
+      <span class="ct">${esc(c.title)}</span><span class="cd">${esc(c.desc||'')}</span>
+      <span class="cm">${done?'완료':cur?'진행 중':c.ready?`${c.days}일, 단어 ${c.count}개`:'준비 중'}</span></button>`;
+  }).join('');
+  $app.innerHTML=`<header><div class="top"><span class="brand">영단어</span>${S.course?'<button class="iconbtn" data-act="back">돌아가기</button>':''}</div>
+    <div class="daynum" style="font-size:34px">과정 고르기</div></header>
+    ${S.done.length?`<div class="note">지금까지 외운 단어 ${st.m}개, 익히는 중인 단어 ${st.l}개. 이전 과정 단어도 복습에 계속 섞여 나와요.</div>`:''}
+    <div class="courses">${list||'<div class="empty">과정 목록을 불러오지 못했어요.</div>'}</div>
+    ${!S.course&&Object.keys(S.cards).length?`<button class="linkbtn" data-act="reviewonly">새 과정 없이 복습만 하기</button>`:''}`;
+}
+
+/* ---------- 메뉴 ---------- */
+function viewMenu(){
+  $app.innerHTML=`<header><div class="top"><span class="brand">메뉴</span><button class="iconbtn" data-act="back">닫기</button></div></header>
+  <button class="secondary" data-act="pick">과정 바꾸기</button>
+  <div class="note">복습 간격: 맞힐 때마다 ${INT.join(', ')}일 뒤로 늘어나고, 틀리면 다음 날 다시 나와요. 마지막 간격까지 맞히면 '외운 단어'가 돼요. </div>
+  <div class="sectionlabel">하루 복습 최대 개수</div><div class="seg">${[5,10,15,20].map(n=>`<button class="toggle" data-rmax="${n}" aria-pressed="${(S.reviewMax||REVIEW_MAX)===n}">${n}개</button>`).join('')}</div>
+  <p style="font-size:13px;color:var(--ink2)">적게 잡으면 복습이 밀릴 수 있어요. 바뀐 개수는 다음 날부터 적용돼요.</p>
+  <button class="secondary" data-act="reset" style="color:var(--red)">모든 기록 지우기</button>`;
+}
+
+/* ---------- 시험 ---------- */
+function parts(m){return m.replace(/[()]/g,',').split(',').map(s=>s.trim()).filter(Boolean);}
+function clash(a,b){const pa=parts(a[2]),pb=new Set(parts(b[2]));return a[0]===b[0]||pa.some(x=>pb.has(x));}
+function pool(){const out=[];for(const k in DAYS)for(const w of DAYS[k])out.push(w);return out;}
+function distractors(w){
+  const P=pool().filter(x=>!clash(w,x));
+  const cand=shuffle(P.filter(x=>x[1]===w[1])).concat(shuffle(P.filter(x=>x[1]!==w[1])));
+  const out=[];for(const x of cand){if(out.every(o=>!clash(o,x)))out.push(x);if(out.length===3)break;}
+  return out;
+}
+function buildTest(){
+  const ids=shuffle(newIds().concat(S.review||[])).filter(id=>word(id));
+  T={qs:ids.map(id=>{const w=word(id);return {id,w,dir:Math.random()<.5?'en':'ko',opts:shuffle([w,...distractors(w)]),pick:null};}),k:0,first:!S.attempted};
+}
+function viewTest(){
+  const q=T.qs[T.k],[en,,m]=q.w,answered=q.pick!==null;
+  $app.innerHTML=`<header><div class="top"><span class="brand">${S.course?`Day ${S.day} 시험`:'복습 시험'}</span><button class="iconbtn" data-act="quit">그만두기</button></div>
+  <div class="progress"><i style="width:${T.k/T.qs.length*100}%"></i></div></header>
+  <div class="qmeta"><span>${T.k+1} / ${T.qs.length}</span><span>${(S.review||[]).includes(q.id)?'복습 단어':''}</span></div>
+  <div class="prompt"><div class="ask">${q.dir==='en'?'알맞은 뜻을 고르세요':'알맞은 영단어를 고르세요'}</div>
+    <div class="big ${q.dir==='ko'?'ko':''}">${esc(q.dir==='en'?en:m)}</div></div>
+  <div class="opts">${q.opts.map((o,j)=>{
+    let c='opt'+(q.dir==='ko'?' en':'');
+    if(answered){if(o===q.w)c+=' right';else if(o===q.pick)c+=' wrong';}
+    return `<button class="${c}" data-opt="${j}" ${answered?'disabled':''}><span class="k">${j+1}</span>${esc(q.dir==='en'?o[2]:o[0])}</button>`;
+  }).join('')}</div>
+  ${answered&&q.pick!==q.w?`<div class="note">${q.w[3]?exHTML(q.w[0],q.w[3]):''}</div><div class="dock"><div class="in"><button class="primary" data-act="next">${T.k+1<T.qs.length?'다음 문제':'결과 보기'}</button></div></div>`:''}`;
+}
+function answer(j){const q=T.qs[T.k];if(q.pick!==null)return;q.pick=q.opts[j];if(q.dir==='ko')speak(q.w[0]);viewTest();if(q.pick===q.w)setTimeout(next,650);}
+function next(){if(!T)return;if(T.k+1<T.qs.length){T.k++;viewTest();}else finishTest();}
+function finishTest(){
+  const wrong=T.qs.filter(q=>q.pick!==q.w),c=T.qs.length-wrong.length;
+  if(T.first){
+    for(const q of T.qs){
+      const card=S.cards[q.id];
+      if(q.pick!==q.w)S.cards[q.id]={lv:0,due:S.g+INT[0],n:(card?card.n:0)+1};
+      else{const lv=card?card.lv+1:1;S.cards[q.id]={lv,due:lv>=MASTER?null:S.g+INT[lv],n:card?card.n:0};}
+    }
+    if(S.course){S.history[S.course]=S.history[S.course]||{};S.history[S.course][S.day]={c,t:T.qs.length,date:today()};}
+    S.attempted=true;S.status='tested';S.testedDate=today();save();
+  }
+  ui.last={c,t:T.qs.length,wrong:wrong.map(q=>q.id),first:T.first};T=null;ui.view='result';render();
+}
+
+/* ---------- 결과 ---------- */
+function viewResult(){
+  const L=ui.last||(()=>{const h=S.course&&S.history[S.course]&&S.history[S.course][S.day];return h?{c:h.c,t:h.t,wrong:null,first:true}:{c:0,t:0,wrong:null,first:true};})();
+  const r=L.t?L.c/L.t:0;
+  const msg=r===1?'전부 맞혔어요.':r>=.8?'거의 다 외웠어요.':r>=.5?'틀린 단어는 다음 날 다시 나와요.':'오늘 단어를 한 번 더 보고 다시 풀어보세요.';
+  const co=course(S.course),last=co&&S.day>=co.days;
+  const nextLabel=!S.course?'다음 복습':last?'다음 과정 고르기':`Day ${S.day+1}`;
+  $app.innerHTML=header()+`
+  <div class="score"><div class="num">${L.c}<span> / ${L.t}</span></div><p>${msg}</p></div>
+  ${L.wrong&&L.wrong.length?`<div class="sectionlabel">틀린 단어</div><div class="list">${L.wrong.map((id,n)=>rowHTML(id,n+1,false)).join('')}</div>`:''}
+  ${!L.first?`<div class="note">연습 시험이에요. 기록은 오늘 첫 시험 결과로 남아 있어요.</div>`:''}
+  <div class="note">${last?`${esc(co.title)} 과정을 마쳤어요. 다음 과정을 고르면 이어서 공부할 수 있고, 이 과정 단어도 복습에 계속 나와요.`:`${nextLabel}은 내일 열려요.`}</div>
+  <div style="margin-top:18px">
+    <button class="primary" data-act="advance">${last?'다음 과정 고르기':`기다리지 않고 ${nextLabel} 시작`}</button>
+    <button class="secondary" data-act="restudy">오늘 단어 다시 보기</button>
+    <button class="secondary" data-act="retest">다시 시험 보기 (연습)</button>
+  </div>`;
+}
+
+/* ---------- 라우팅 ---------- */
+function render(){
+  window.scrollTo(0,0);
+  if(!ready){$app.innerHTML=loadErr?`<div class="note" style="margin-top:40px">${esc(loadErr)}</div>`:'<div class="empty" style="margin-top:40vh">불러오는 중</div>';return;}
+  if(ui.view==='menu')return viewMenu();
+  if(ui.view==='pick'||S.status==='pick')return viewPick();
+  if(ui.view==='test'&&T)return viewTest();
+  if(ui.view==='result'||(S.status==='tested'&&ui.view!=='study'))return viewResult();
+  return viewStudy();
+}
+async function go(fn){ready=false;render();try{fn&&fn();await loadNeeded();ready=true;}catch(e){loadErr='단어를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 열어주세요.';}render();}
+
+$app.addEventListener('click',e=>{
+  const say=e.target.closest('[data-say]');if(say){speak(say.dataset.say);return;}
+  const opt=e.target.closest('[data-opt]');if(opt){answer(+opt.dataset.opt);return;}
+  const cb=e.target.closest('[data-course]');
+  if(cb){const id=cb.dataset.course;if(S.course!==id){S.course=id;S.day=1;}ui.view=null;go(()=>{startDay();save();});return;}
+  const rm=e.target.closest('[data-rmax]');if(rm){S.reviewMax=+rm.dataset.rmax;save();viewMenu();return;}
+  const b=e.target.closest('[data-act]');
+  if(b){
+    const a=b.dataset.act;
+    if(a==='hide'){ui.hide=!ui.hide;ui.shown.clear();viewStudy();}
+    else if(a==='test'||a==='retest'){buildTest();ui.view='test';render();}
+    else if(a==='next')next();
+    else if(a==='quit'){if(confirm('시험을 그만둘까요? 지금까지 푼 답은 저장되지 않아요.')){T=null;ui.view=S.status==='tested'?'result':'study';render();}}
+    else if(a==='restudy'){ui.view='study';ui.hide=false;render();}
+    else if(a==='advance'){ui.view=null;ui.last=null;ui.shown.clear();go(()=>{advance();save();});}
+    else if(a==='menu'){ui.view='menu';render();}
+    else if(a==='pick'){ui.view='pick';render();}
+    else if(a==='back'){ui.view=null;render();}
+    else if(a==='reviewonly'){S.status='study';ui.view=null;go(()=>{startDay();save();});}
+    else if(a==='reset'){if(confirm('모든 기록을 지우고 처음부터 시작할까요?')){S=fresh();save();ui={view:null,hide:false,shown:new Set()};render();}}
+    return;
+  }
+  const row=e.target.closest('.hidden .row');
+  if(row){const id=row.dataset.id;ui.shown.has(id)?ui.shown.delete(id):ui.shown.add(id);row.classList.toggle('show');}
+});
+document.addEventListener('keydown',e=>{
+  if(ui.view!=='test'||!T)return;const q=T.qs[T.k];
+  if(q.pick===null&&/^[1-4]$/.test(e.key))answer(+e.key-1);else if(q.pick!==null&&e.key==='Enter')next();
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ready&&ui.view!=='test'&&canAdvance()){ui.view=null;ui.last=null;go(()=>{advance();save();});}});
+
+/* ---------- 시작 (단독 실행판: 기기 안에만 저장) ---------- */
+(async()=>{
+  await go(()=>{if(canAdvance())advance();else if(S.status!=='pick'&&!S.review.length&&!S.attempted)S.review=pickReview();save();});
+})();
+</script></body></html>

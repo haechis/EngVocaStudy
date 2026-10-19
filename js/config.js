@@ -5,6 +5,6 @@
 //  secret key(sb_secret_...)는 절대 넣지 마세요.
 // ==========================================================
 export const SUPABASE_URL='https://kftshrtksotxnipihlpo.supabase.co';
-export const SUPABASE_ANON_KEY='sb_publishable_aMBW2TAp5lodEu7-xqM_SQ_vc-nS3KL';
+export const SUPABASE_KEY='sb_publishable_aMBW2TAp5lodEu7-xqM_SQ_vc-nS3KL';
 
 

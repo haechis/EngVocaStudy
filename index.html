@@ -44,6 +44,8 @@ header{margin-bottom:22px}
 .brand{font-family:"Gowun Dodum",sans-serif;font-size:15px;color:var(--ink2)}
 .daynum{font-family:Fraunces,Georgia,serif;font-weight:700;font-size:44px;line-height:1;letter-spacing:-.02em;margin:6px 0 4px}
 .daynum small{font-size:18px;color:var(--ink2);font-weight:500;margin-left:4px}
+.saveerr{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top,0px));z-index:20;background:var(--red);color:#fff;font-size:13px;padding:8px 12px;border-radius:10px}
+.topbtns{display:flex;gap:14px}
 .iconbtn{background:none;border:0;color:var(--ink2);font-size:13px;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
 
 .grid{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:14px}
@@ -165,7 +167,7 @@ function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):nul
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
 let S=fresh(),LSK=LS;
-let sb=null,me=null,pendingProfile=false;
+let sb=null,me=null,pendingProfile=false,saveErr='',loadErrMsg='';
 let auth={mode:'loading',email:'',name:'',msg:'',busy:false};
 let COURSES=EMBED.courses;
 const DAYS=Object.assign({},EMBED.days);
@@ -214,8 +216,18 @@ function pickReview(){
 }
 function startDay(){S.status=S.course?'study':(S.status==='pick'?'pick':'study');S.review=pickReview();S.attempted=false;}
 function canAdvance(){return S.status==='tested'&&S.testedDate&&today()>S.testedDate;}
-function advance(){
-  S.g++;
+function stash(){if(S.course){S.pos=S.pos||{};S.pos[S.course]={day:S.day,status:S.status,testedDate:S.testedDate,attempted:S.attempted,review:S.review};}}
+function selectCourse(id){
+  if(S.course===id)return false;                 // 같은 과정이면 아무것도 초기화하지 않음
+  stash();S.course=id;
+  const p=S.pos&&S.pos[id];
+  if(p&&typeof p==='object'){S.day=p.day||1;S.status=p.status==='pick'?'study':(p.status||'study');S.testedDate=p.testedDate||null;S.attempted=!!p.attempted;S.review=p.review||[];}
+  else{S.day=typeof p==='number'?p:1;S.testedDate=null;startDay();}
+  return true;
+}
+function advance(manual){
+  // 학습일(g)은 '기다리지 않고 시작'을 눌렀을 때, 또는 날짜가 바뀐 뒤 처음 넘어갈 때만 1 증가
+  if(manual||S.gDate!==today()){S.g++;S.gDate=today();}
   if(S.course){const co=course(S.course);if(co&&S.day>=co.days){if(!S.done.includes(S.course))S.done.push(S.course);S.course=null;S.day=1;S.status='pick';S.review=pickReview();return;}S.day++;}
   startDay();
 }
@@ -260,7 +272,7 @@ function header(){
     grid=`<div class="grid" aria-label="진행 현황">${cells.join('')}</div>`;
   }
   return `<header>
-    <div class="top"><span class="brand">${co?esc(co.title):'단어장'}</span><button class="iconbtn" data-act="menu">메뉴</button></div>
+    <div class="top"><span class="brand">${co?esc(co.title):'단어장'}</span><span class="topbtns"><button class="iconbtn" data-act="pick">홈</button><button class="iconbtn" data-act="menu">메뉴</button></span></div>
     <div class="daynum">${co?`Day ${S.day}<small>/ ${co.days}</small>`:'복습'}</div>
     ${grid}
     <div class="legend"><span>외운 단어 ${st.m}개</span><span>익히는 중 ${st.l}개</span></div>
@@ -304,7 +316,7 @@ function viewPick(){
     const done=S.done.includes(c.id),cur=S.course===c.id;
     return `<button class="course${done?' done':''}" data-course="${c.id}" ${done||!c.ready?'disabled':''}>
       <span class="ct">${esc(c.title)}</span><span class="cd">${esc(c.desc||'')}</span>
-      <span class="cm">${done?'완료':cur?`진행 중 (Day ${S.day})`:S.pos&&S.pos[c.id]>1?`Day ${S.pos[c.id]}부터 이어서`:c.ready?`${c.days}일, 단어 ${c.count}개`:'준비 중'}</span></button>`;
+      <span class="cm">${done?'완료':cur?`진행 중 (Day ${S.day})`:S.pos&&S.pos[c.id]?`Day ${S.pos[c.id].day||S.pos[c.id]}부터 이어서`:c.ready?`${c.days}일, 단어 ${c.count}개`:'준비 중'}</span></button>`;
   }).join('');
   $app.innerHTML=`<header><div class="top"><span class="brand">단어장</span>${S.course?'<button class="iconbtn" data-act="back">돌아가기</button>':''}</div>
     <div class="daynum" style="font-size:34px">과정 고르기</div></header>
@@ -316,7 +328,7 @@ function viewPick(){
 /* ---------- 메뉴 ---------- */
 function viewMenu(){
   $app.innerHTML=`<header><div class="top"><span class="brand">메뉴</span><button class="iconbtn" data-act="back">닫기</button></div></header>
-  <div class="note" style="margin-top:0">${esc(me.name||'')} (${esc(me.email)})</div>
+  <div class="note" style="margin-top:0">${esc(me.name||'')} (${esc(me.email)})<br>${saveErr||loadErrMsg?`<span style="color:var(--red)">서버 연결 오류: ${esc(saveErr||loadErrMsg)}</span>`:'서버에 저장되고 있어요.'}</div>
   <button class="secondary" data-act="pick">과정 바꾸기</button>
   <div class="note">복습 간격: 맞힐 때마다 ${INT.join(', ')}일 뒤로 늘어나고, 틀리면 다음 날 다시 나와요. 마지막 간격까지 맞히면 '외운 단어'가 돼요. </div>
   <div class="sectionlabel">하루 복습 최대 개수</div><div class="seg">${[5,10,15,20].map(n=>`<button class="toggle" data-rmax="${n}" aria-pressed="${(S.reviewMax||REVIEW_MAX)===n}">${n}개</button>`).join('')}</div>
@@ -406,7 +418,7 @@ $app.addEventListener('click',e=>{
   const say=e.target.closest('[data-say]');if(say){speak(say.dataset.say,say.dataset.lang);return;}
   const opt=e.target.closest('[data-opt]');if(opt){answer(+opt.dataset.opt);return;}
   const cb=e.target.closest('[data-course]');
-  if(cb){const id=cb.dataset.course;if(S.course!==id){S.pos=S.pos||{};if(S.course)S.pos[S.course]=S.day;S.course=id;S.day=S.pos[id]||1;}ui.view=null;go(()=>{startDay();save();});return;}
+  if(cb){const id=cb.dataset.course;ui.view=null;go(()=>{if(selectCourse(id)){if(canAdvance())advance(false);}save();});return;}
   const rm=e.target.closest('[data-rmax]');if(rm){S.reviewMax=+rm.dataset.rmax;save();viewMenu();return;}
   const b=e.target.closest('[data-act]');
   if(b){
@@ -416,7 +428,7 @@ $app.addEventListener('click',e=>{
     else if(a==='next')next();
     else if(a==='quit'){if(confirm('시험을 그만둘까요? 지금까지 푼 답은 저장되지 않아요.')){T=null;ui.view=S.status==='tested'?'result':'study';render();}}
     else if(a==='restudy'){ui.view='study';ui.hide=false;render();}
-    else if(a==='advance'){ui.view=null;ui.last=null;ui.shown.clear();go(()=>{advance();save();});}
+    else if(a==='advance'){ui.view=null;ui.last=null;ui.shown.clear();go(()=>{advance(true);save();});}
     else if(a==='menu'){ui.view='menu';render();}
     else if(a==='pick'){ui.view='pick';render();}
     else if(a==='back'){ui.view=null;render();}
@@ -433,7 +445,7 @@ document.addEventListener('keydown',e=>{
   if(ui.view!=='test'||!T)return;const q=T.qs[T.k];
   if(q.pick===null&&/^[1-4]$/.test(e.key))answer(+e.key-1);else if(q.pick!==null&&e.key==='Enter')next();
 });
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ready&&ui.view!=='test'&&canAdvance()){ui.view=null;ui.last=null;go(()=>{advance();save();});}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ready&&ui.view!=='test'&&canAdvance()){ui.view=null;ui.last=null;go(()=>{advance(false);save();});}});
 
 /* ---------- 계정: 이메일 인증 → 가입 → 로그인 ---------- */
 const NAME_RE=/^[A-Za-z][A-Za-z .'-]{0,39}$/;
@@ -543,17 +555,23 @@ async function enter(user){
   let remote=null;
   try{
     const {data,error}=await sb.from('progress').select('state').eq('user_id',me.id).maybeSingle();
-    if(!error&&data)remote=data.state;
+    if(error)loadErrMsg=error.message;else if(data)remote=data.state;
   }catch(e){}
   S=Object.assign(fresh(),(remote&&(!local||(remote.updatedAt||0)>=(local.updatedAt||0)))?remote:(local||{}));
   lsSet(LSK,S);
   if(!remote&&local&&local.updatedAt)pushRemote();
   ui={view:null,hide:false,shown:new Set()};
-  await go(()=>{if(canAdvance())advance();else if(S.status!=='pick'&&!S.review.length&&!S.attempted)S.review=pickReview();save();});
+  await go(()=>{if(canAdvance())advance(false);else if(S.status!=='pick'&&!S.review.length&&!S.attempted)S.review=pickReview();save();});
 }
 async function pushRemote(){
   if(!sb||!me)return;
-  try{await sb.from('progress').upsert({user_id:me.id,name:me.name,state:S,updated_at:new Date(S.updatedAt||Date.now()).toISOString()});}catch(e){}
+  try{
+    const {error}=await sb.from('progress').upsert({user_id:me.id,name:me.name,state:S,updated_at:new Date(S.updatedAt||Date.now()).toISOString()});
+    saveErr=error?error.message:'';
+  }catch(e){saveErr=String(e&&e.message||e);}
+  const bn=document.getElementById('saveerr');
+  if(saveErr&&!bn){const d=document.createElement('div');d.id='saveerr';d.className='saveerr';d.textContent='서버 저장 실패: '+saveErr;document.body.appendChild(d);}
+  else if(!saveErr&&bn)bn.remove();
 }
 async function logout(){
   if(!confirm('로그아웃할까요?'))return;

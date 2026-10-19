@@ -1,0 +1,34 @@
+[
+  {
+    "id": "c1",
+    "title": "중학 기초 600",
+    "desc": "중1~2 교과서 수준 필수 단어",
+    "lang": "en",
+    "days": 60,
+    "perDay": 10,
+    "count": 600,
+    "ready": true,
+    "file": "data/en-basic.json"
+  },
+  {
+    "id": "c2",
+    "title": "중학 심화 600",
+    "desc": "중3~고1 수준 단어",
+    "lang": "en",
+    "days": 60,
+    "perDay": 10,
+    "count": 600,
+    "ready": false
+  },
+  {
+    "id": "j1",
+    "title": "일본어 기초 300",
+    "desc": "히라가나 위주 생활 단어 + 쉬운 한자",
+    "lang": "ja",
+    "days": 30,
+    "perDay": 10,
+    "count": 300,
+    "ready": true,
+    "file": "data/ja-basic.json"
+  }
+]

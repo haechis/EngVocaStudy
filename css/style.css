@@ -1,0 +1,169 @@
+/* ==========================================================
+   단어장 — 스타일
+   1. 색상 토큰   2. 기본   3. 상단 경로(홈 링크)   4. 공통 부품
+   5. 홈(과정 목록)   6. 과정 화면   7. 단어 목록   8. 시험
+   9. 결과   10. 설정·로그인
+   ========================================================== */
+
+/* 1. 색상 토큰 ------------------------------------------------ */
+:root{
+  --paper:#F3F6FB; --sheet:#FFFFFF; --ink:#1B2A4A; --ink2:#55627D; --rule:#D9E1EE;
+  --mark:#FFE45C; --markSoft:#FFF4B8; --red:#D93A33; --green:#22895C; --blueline:#B9CBEA;
+  --cell:#E4EAF3;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111827; --sheet:#1A2336; --ink:#E8EDF7; --ink2:#9AA7C0; --rule:#2C3854;
+    --mark:#E8C93A; --markSoft:#4A4220; --red:#FF6B62; --green:#4FCB8E; --blueline:#2E3D5E;
+    --cell:#24304A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111827; --sheet:#1A2336; --ink:#E8EDF7; --ink2:#9AA7C0; --rule:#2C3854;
+  --mark:#E8C93A; --markSoft:#4A4220; --red:#FF6B62; --green:#4FCB8E; --blueline:#2E3D5E;
+  --cell:#24304A; color-scheme:dark;
+}
+
+/* 2. 기본 ----------------------------------------------------- */
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Noto Sans KR",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit}
+button:focus-visible,a:focus-visible{outline:3px solid var(--blueline);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:12px 18px 120px}
+.ja{font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 3. 상단 경로(모든 화면 공통, 첫 항목 '홈'은 항상 과정 목록으로) */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-bottom:10px}
+.crumbs{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:14px;color:var(--ink2);min-width:0}
+.crumbs li{display:flex;align-items:center;gap:6px;min-width:0}
+.crumbs li+li::before{content:"›";color:var(--ink2)}
+.crumbs a{color:var(--ink);text-decoration:none;font-weight:500;padding:10px 0}
+.crumbs a:hover{text-decoration:underline;text-underline-offset:3px}
+.crumbs li:first-child a,.crumbs li:first-child span{display:inline-flex;align-items:center;gap:5px;font-weight:700}
+.crumbs li:first-child svg{width:16px;height:16px}
+.crumbs [aria-current]{color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toplink{font-size:14px;color:var(--ink2);text-decoration:none;padding:10px 0;flex:none}
+.toplink:hover{color:var(--ink)}
+.saveerr{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top,0px));z-index:20;background:var(--red);color:#fff;font-size:13px;padding:8px 12px;border-radius:10px}
+
+/* 4. 공통 부품 ------------------------------------------------ */
+.title{font-family:Fraunces,Georgia,serif;font-weight:700;font-size:34px;line-height:1.1;letter-spacing:-.01em;margin:4px 0 4px}
+.daynum{font-family:Fraunces,Georgia,serif;font-weight:700;font-size:44px;line-height:1;letter-spacing:-.02em;margin:4px 0}
+.daynum small{font-size:18px;color:var(--ink2);font-weight:500;margin-left:4px}
+.lead{margin:0;color:var(--ink2);font-size:15px}
+.note{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--ink2);margin-top:18px}
+.note strong{color:var(--ink)}
+.note.err{color:var(--red)}
+.note.ok{color:var(--green)}
+.empty{text-align:center;color:var(--ink2);padding:20px 0}
+.sectionlabel{font-size:13px;color:var(--ink2);margin:18px 0 8px}
+.primary,.secondary{display:block;width:100%;text-align:center;text-decoration:none;border-radius:12px}
+.primary{border:0;padding:16px;font-size:17px;font-weight:700;background:var(--ink);color:var(--paper)}
+.secondary{border:1px solid var(--rule);padding:14px;font-size:15px;background:var(--sheet);margin-top:10px;color:var(--ink)}
+.primary:disabled{opacity:.5;cursor:default}
+.actions{margin-top:18px}
+.linkbtn{display:block;margin:14px auto 0;background:none;border:0;color:var(--ink2);font-size:14px;text-decoration:underline;text-underline-offset:3px}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--paper) 30%)}
+.dock .in{max-width:560px;margin:0 auto}
+.toggle{border:1px solid var(--rule);background:var(--sheet);border-radius:999px;padding:6px 12px;font-size:13px}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+
+/* 5. 홈(과정 목록) ------------------------------------------- */
+.courses{display:grid;gap:10px;margin-top:18px}
+.course{display:grid;gap:2px;text-align:left;text-decoration:none;color:var(--ink);border:1px solid var(--rule);background:var(--sheet);border-radius:14px;padding:16px 18px}
+a.course:hover{border-color:var(--ink2)}
+.course .ct{font-size:18px;font-weight:700}
+.course .cd{font-size:14px;color:var(--ink2)}
+.course .cm{font-size:13px;margin-top:6px;font-weight:500}
+.course .cm.done{color:var(--green)}
+.course.off{opacity:.6}
+.course.off .cm{color:var(--ink2);font-weight:400}
+.course.last{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--ink)}
+
+/* 6. 과정 화면 ------------------------------------------------ */
+.grid{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin-top:14px}
+.cell{display:block;aspect-ratio:1;border-radius:3px;background:var(--cell)}
+a.cell:hover{outline:2px solid var(--ink2);outline-offset:1px}
+.cell.now{box-shadow:inset 0 0 0 2px var(--ink)}
+.cell.s3{background:var(--green)}
+.cell.s2{background:color-mix(in srgb,var(--green) 60%,var(--cell))}
+.cell.s1{background:color-mix(in srgb,var(--mark) 75%,var(--cell))}
+.cell.s0{background:color-mix(in srgb,var(--red) 55%,var(--cell))}
+.legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-top:6px}
+.bar{display:flex;align-items:center;justify-content:space-between;margin:26px 0 12px;gap:10px}
+.bar h2{margin:0;font-size:17px;font-weight:700}
+.bar .sub{font-size:13px;color:var(--ink2)}
+.done-note .row2{display:flex;gap:10px;margin-top:12px}
+.done-note .row2>*{margin-top:0}
+
+/* 7. 단어 목록 ------------------------------------------------ */
+.list{background:var(--sheet);border-radius:14px;border:1px solid var(--rule);overflow:hidden;
+  background-image:linear-gradient(to right,transparent 46px,var(--blueline) 46px,var(--blueline) 47px,transparent 47px)}
+.row{display:grid;grid-template-columns:46px 1fr auto;align-items:center;border-top:1px solid var(--rule);min-height:68px}
+.row:first-child{border-top:0}
+.row .n{font-family:Fraunces,serif;font-size:13px;color:var(--ink2);text-align:center}
+.row .body{padding:10px 12px 10px 14px;min-width:0}
+.word{font-family:Fraunces,Georgia,serif;font-size:23px;font-weight:600;line-height:1.2;display:inline;background:linear-gradient(transparent 58%,var(--markSoft) 58%)}
+.word.ja{font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;font-size:24px;font-weight:700}
+.row.review .word{background:linear-gradient(transparent 58%,color-mix(in srgb,var(--red) 22%,transparent) 58%)}
+ruby rt{font-size:.5em;font-weight:500;color:var(--ink2);font-family:"Noto Sans JP",sans-serif}
+.pos{font-size:12px;color:var(--ink2);margin-left:8px}
+.tag{font-size:11px;color:var(--red);margin-left:8px;font-weight:500}
+.tag.ok{color:var(--green)}
+.mean{margin-top:2px;font-size:15px;transition:filter .2s}
+.hidden .mean{filter:blur(6px);user-select:none}
+.hidden .row.show .mean{filter:none}
+.ex{display:block;text-align:left;background:none;border:0;padding:4px 0 0;margin:0;font-family:Fraunces,Georgia,serif;font-size:15px;line-height:1.45;color:var(--ink2)}
+.ex.ja{font-family:"Noto Sans JP","Hiragino Sans",sans-serif}
+.ex b{color:var(--ink);font-weight:700}
+.ex:active{color:var(--ink)}
+.exko{font-size:13px;color:var(--ink2);margin-top:1px}
+.say{background:none;border:0;width:44px;height:44px;margin-right:8px;color:var(--ink2);border-radius:50%}
+.say svg{width:20px;height:20px}
+.say:active{background:var(--cell)}
+
+/* 8. 시험 ----------------------------------------------------- */
+.progress{height:6px;background:var(--cell);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--ink);transition:width .25s}
+.qmeta{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);margin-top:14px}
+.prompt{background:var(--sheet);border:1px solid var(--rule);border-radius:14px;padding:34px 18px;text-align:center;margin:10px 0 16px}
+.prompt .ask{font-size:13px;color:var(--ink2);margin-bottom:10px}
+.prompt .big{font-family:Fraunces,Georgia,serif;font-size:38px;font-weight:700;line-height:1.15;word-break:break-word}
+.prompt .big.ko{font-family:"Noto Sans KR",sans-serif;font-size:26px}
+.prompt .big.ja{font-family:"Noto Sans JP","Hiragino Sans",sans-serif;font-size:40px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;border:1px solid var(--rule);background:var(--sheet);border-radius:12px;padding:15px 16px;font-size:17px;display:flex;gap:12px;align-items:center}
+.opt .k{font-family:Fraunces,serif;color:var(--ink2);width:18px;flex:none}
+.opt.en{font-family:Fraunces,Georgia,serif;font-size:20px}
+.opt.ja{font-family:"Noto Sans JP","Hiragino Sans",sans-serif;font-size:20px}
+.opt.right{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--sheet))}
+.opt.wrong{border-color:var(--red);background:color-mix(in srgb,var(--red) 12%,var(--sheet));text-decoration:line-through;text-decoration-color:var(--red)}
+.opt:disabled{cursor:default;color:var(--ink)}
+
+/* 9. 결과 ----------------------------------------------------- */
+.score{text-align:center;margin:18px 0 8px}
+.score .num{font-family:Fraunces,Georgia,serif;font-size:84px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.score .num span{font-size:34px;color:var(--ink2)}
+.score p{margin:10px 0 0;color:var(--ink2);font-size:15px}
+
+/* 10. 설정·로그인 --------------------------------------------- */
+.form{display:grid;gap:12px;margin-top:8px}
+.form .title{margin-bottom:0}
+.field{display:grid;gap:6px;font-size:14px;color:var(--ink2)}
+.field input{font:inherit;font-size:17px;color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:14px;width:100%}
+.field input:focus{outline:3px solid var(--blueline);outline-offset:1px;border-color:var(--ink)}
+.field input.code{font-family:Fraunces,Georgia,serif;font-size:28px;letter-spacing:.3em;text-align:center}
+.form .secondary{margin-top:0}
+.form .note{margin-top:0}
+.authhead{font-family:"Gowun Dodum",sans-serif;font-size:15px;color:var(--ink2);min-height:44px;display:flex;align-items:center}
+.settings-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
